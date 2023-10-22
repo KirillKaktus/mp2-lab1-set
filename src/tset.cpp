@@ -7,19 +7,18 @@
 
 #include "tset.h"
 
-TSet::TSet(int mp) : BitField(-1)
+TSet::TSet(int mp) : bf(mp)
 {
+    MaxPower = mp;
 }
 
 // конструктор копирования
-TSet::TSet(const TSet &s) : BitField(-1)
-{
-}
+TSet::TSet(const TSet& s) : bf(s.bf),MaxPower(s.MaxPower)
+{}
 
 // конструктор преобразования типа
-TSet::TSet(const TBitField &bf) : BitField(-1)
-{
-}
+TSet::TSet(const TBitField &_bf) : bf(_bf),MaxPower(_bf.GetLength())
+{}
 
 TSet::operator TBitField()
 {
@@ -28,31 +27,39 @@ TSet::operator TBitField()
 
 int TSet::GetMaxPower(void) const // получить макс. к-во эл-тов
 {
-    return 0;
+    return MaxPower;
 }
 
 int TSet::IsMember(const int Elem) const // элемент множества?
 {
-    return 0;
+    if (bf.GetBit(Elem))
+        return 1;
+    else
+        return 0;
 }
 
 void TSet::InsElem(const int Elem) // включение элемента множества
 {
+    bf.SetBit(Elem);
 }
 
 void TSet::DelElem(const int Elem) // исключение элемента множества
 {
+    bf.ClrBit(Elem);
 }
 
 // теоретико-множественные операции
 
-TSet& TSet::operator=(const TSet &s) // присваивание
+TSet& TSet::operator=(const TSet &set) // присваивание
 {
+    bf = set.bf;
+    MaxPower = set.MaxPower;
     return *this;
 }
 
 int TSet::operator==(const TSet &s) const // сравнение
 {
+
     return 0;
 }
 
@@ -63,17 +70,24 @@ int TSet::operator!=(const TSet &s) const // сравнение
 
 TSet TSet::operator+(const TSet &s) // объединение
 {
-    return *this;
+    TSet res(s);
+    res.bf = bf | s.bf;
+    res.MaxPower = res.bf.GetLength();
+    return res;
 }
 
 TSet TSet::operator+(const int Elem) // объединение с элементом
 {
-    return *this;
+    TSet res(*this);
+    res.InsElem(Elem);
+    return res;
 }
 
 TSet TSet::operator-(const int Elem) // разность с элементом
 {
-    return *this;
+    TSet res(*this);
+    res.DelElem(Elem);
+    return res;
 }
 
 TSet TSet::operator*(const TSet &s) // пересечение
@@ -88,12 +102,29 @@ TSet TSet::operator~(void) // дополнение
 
 // перегрузка ввода/вывода
 
-istream &operator>>(istream &istr, TSet &s) // ввод
+istream &operator>>(istream &is, TSet &s) // ввод
 {
-    return istr;
+    int m;
+    char d;
+    is >> d;
+    while (d!=')')
+    {
+        is >> m;
+        s.InsElem(m);
+        is >> d;
+
+    }
+    return is;
 }
 
-ostream& operator<<(ostream &ostr, const TSet &s) // вывод
+ostream& operator<<(ostream &os, const TSet &s) // вывод
 {
-    return ostr;
+    os << "{";
+    for (int i = 0; i < s.MaxPower; i++)
+    {
+        if (s.IsMember(i))
+            os << i << " ";
+    }
+    os << "}";
+    return os;
 }
